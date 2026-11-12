@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PhoneFilter-Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+    .panel[hidden] { display: none !important; }
+    #pager[hidden] { display: none !important; }
+    .nav-item {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 0.5rem;
+      border-radius: 0.75rem;
+      padding: 0.75rem 0.9rem;
+      color: #cbd5e1;
+      font-size: 0.95rem;
+      font-weight: 600;
+      text-align: left;
+    }
+    .nav-item:hover { background: rgba(255, 255, 255, 0.06); }
+    .nav-item[aria-current="page"] {
+      background: #2563eb;
+      color: #fff;
+    }
+    #rows td {
+      padding: 0.8rem 1rem;
+      white-space: nowrap;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    #rows td.muted { color: #64748b; }
+    #rows tr:nth-child(odd) { background: rgba(15, 23, 42, 0.35); }
+    #rows tr:nth-child(even) { background: rgba(148, 163, 184, 0.08); }
+    #rows tr { transition: background-color 0.15s ease; }
+    #rows tr:hover { background: rgba(37, 99, 235, 0.28); }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 999px;
+      padding: 0.15rem 0.7rem;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+    .tag-gray { background: rgba(148, 163, 184, 0.18); color: #cbd5e1; }
+    .tag-red { background: rgba(248, 113, 113, 0.18); color: #fca5a5; }
+    .tag-blue { background: rgba(96, 165, 250, 0.2); color: #93c5fd; }
+    .tag-green { background: rgba(45, 212, 191, 0.2); color: #5eead4; }
+    #page-numbers { display: flex; gap: 0.4rem; }
+    #page-numbers button,
+    #page-prev,
+    #page-next {
+      height: 2rem;
+      min-width: 2rem;
+      padding: 0 0.7rem;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.5rem;
+      background: rgba(15, 23, 42, 0.8);
+      color: #e2e8f0;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #page-numbers button:hover,
+    #page-prev:hover,
+    #page-next:hover { background: rgba(37, 99, 235, 0.35); }
+    #page-numbers button[aria-current="page"] {
+      background: #2563eb;
+      border-color: #2563eb;
+      color: #fff;
+    }
+    #page-prev:disabled,
+    #page-next:disabled { opacity: 0.35; cursor: default; }
+  </style>
+</head>
+<body class="min-h-screen bg-[#0b1020] text-slate-100 antialiased">
+  <header class="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-white/10 bg-[#0b1220] px-5">
+    <p class="text-base font-semibold tracking-tight text-white">PhoneFilter-Engine</p>
+    <p class="text-sm text-slate-300">👨‍💻 陆山君 (<a class="text-blue-300 hover:text-blue-200" href="https://github.com/rikusankun" target="_blank" rel="noreferrer">GitHub: rikusankun</a>)</p>
+  </header>
+
+  <aside class="fixed bottom-0 left-0 top-14 z-20 w-60 border-r border-white/10 bg-[#111827] px-3 py-4">
+    <nav class="flex flex-col gap-1" aria-label="主导航">
+      <button class="nav-item" type="button" data-tab="dashboard" aria-current="page">📊 数据看板</button>
+      <button class="nav-item" type="button" data-tab="lookup">🔍 号码查询</button>
+      <button class="nav-item" type="button" data-tab="import">📥 数据导入</button>
+    </nav>
+  </aside>
+
+  <main class="min-h-screen pb-10 pl-64 pr-6 pt-20">
+    <section id="panel-dashboard" class="panel">
+      <div class="mb-5 flex items-end justify-between gap-3">
+        <h1 class="text-2xl font-semibold text-white">数据看板</h1>
+        <p class="text-xs text-slate-500">卡片和图表为示例数据</p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <article class="rounded-2xl border border-white/10 bg-[#151c2e] p-5">
+          <p class="text-sm text-slate-400">总底料</p>
+          <p class="mt-3 text-4xl font-bold tabular-nums tracking-tight text-white">80,000</p>
+        </article>
+        <article class="rounded-2xl border border-white/10 bg-[#151c2e] p-5">
+          <p class="text-sm text-slate-400">已触达</p>
+          <p class="mt-3 text-4xl font-bold tabular-nums tracking-tight text-white">9,860</p>
+        </article>
+        <article class="rounded-2xl border border-white/10 bg-[#151c2e] p-5">
+          <p class="text-sm text-slate-400">触达有效</p>
+          <p class="mt-3 text-4xl font-bold tabular-nums tracking-tight text-white">3,240</p>
+        </article>
+        <article class="rounded-2xl border border-white/10 bg-[#151c2e] p-5">
+          <p class="text-sm text-slate-400">已开客</p>
+          <p class="mt-3 text-4xl font-bold tabular-nums tracking-tight text-white">1,280</p>
+        </article>
+      </div>
+      <div class="mt-4 grid gap-4 xl:grid-cols-2">
+        <article class="rounded-2xl border border-white/10 bg-[#151c2e] p-4">
+          <p class="text-sm font-semibold text-slate-200">男女比例</p>
+          <div id="chart-gender" class="h-72"></div>
+        </article>
+        <article class="rounded-2xl border border-white/10 bg-[#151c2e] p-4">
+          <p class="text-sm font-semibold text-slate-200">年龄分布</p>
+          <div id="chart-age" class="h-72"></div>
+        </article>
+      </div>
+    </section>
+
+    <section id="panel-lookup" class="panel" hidden>
+      <h1 class="text-2xl font-semibold text-white">号码查询</h1>
+      <section class="mt-5 rounded-2xl border border-white/10 bg-[#151c2e] p-5">
+        <form id="lookup-form" class="flex flex-wrap items-end gap-4">
+          <label class="flex flex-col gap-1.5 text-xs font-semibold text-slate-300">号码
+            <input id="phone" name="phone" autocomplete="off" class="h-10 w-48 rounded-xl border border-white/10 bg-[#0b1020] px-3 text-sm text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" />
+          </label>
+          <label class="flex flex-col gap-1.5 text-xs font-semibold text-slate-300">性别
+            <input id="gender" name="gender" placeholder="Female / Male" autocomplete="off" class="h-10 w-48 rounded-xl border border-white/10 bg-[#0b1020] px-3 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" />
+          </label>
+          <label class="flex flex-col gap-1.5 text-xs font-semibold text-slate-300">最小年龄
+            <input id="age-min" name="age_min" type="number" min="0" max="65535" class="h-10 w-36 rounded-xl border border-white/10 bg-[#0b1020] px-3 text-sm text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" />
+          </label>
+          <label class="flex flex-col gap-1.5 text-xs font-semibold text-slate-300">最大年龄
+            <input id="age-max" name="age_max" type="number" min="0" max="65535" class="h-10 w-36 rounded-xl border border-white/10 bg-[#0b1020] px-3 text-sm text-white outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" />
+          </label>
+          <div class="flex gap-2">
+            <button id="submit" type="submit" class="h-10 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-50">查询</button>
+            <button id="export" type="button" class="h-10 rounded-xl border border-blue-400/50 bg-transparent px-4 text-sm font-semibold text-blue-200 transition hover:bg-blue-500/10 disabled:cursor-wait disabled:opacity-50">导出 CSV</button>
+          </div>
+        </form>
+      </section>
+      <p id="summary" class="mt-4 min-h-6 text-sm font-semibold text-blue-200"></p>
+      <section class="mt-2 rounded-2xl border border-white/10 bg-[#151c2e] p-3">
+        <div class="overflow-x-auto">
+          <table class="w-full border-separate border-spacing-0 text-sm">
+            <thead>
+              <tr class="text-left text-xs tracking-wide text-slate-400">
+                <th class="rounded-l-xl bg-[#0e1526] px-4 py-3 font-semibold">状态</th>
+                <th class="bg-[#0e1526] px-4 py-3 font-semibold">号码</th>
+                <th class="bg-[#0e1526] px-4 py-3 font-semibold">姓名</th>
+                <th class="bg-[#0e1526] px-4 py-3 font-semibold">年龄</th>
+                <th class="bg-[#0e1526] px-4 py-3 font-semibold">性别</th>
+                <th class="bg-[#0e1526] px-4 py-3 font-semibold">估值</th>
+                <th class="bg-[#0e1526] px-4 py-3 font-semibold">权益</th>
+                <th class="bg-[#0e1526] px-4 py-3 font-semibold">最近成交额</th>
+                <th class="bg-[#0e1526] px-4 py-3 font-semibold">最近成交日期</th>
+                <th class="bg-[#0e1526] px-4 py-3 font-semibold">邮箱</th>
+                <th class="bg-[#0e1526] px-4 py-3 font-semibold">产权类型</th>
+                <th class="rounded-r-xl bg-[#0e1526] px-4 py-3 font-semibold">入住类型</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+        <nav id="pager" class="mt-3 flex items-center justify-end gap-2 px-2 pb-1" hidden>
+          <button id="page-prev" type="button">上一页</button>
+          <div id="page-numbers"></div>
+          <button id="page-next" type="button">下一页</button>
+        </nav>
+      </section>
+    </section>
+
+    <section id="panel-import" class="panel" hidden>
+      <div class="mb-5 flex flex-wrap items-end justify-between gap-3">
+        <h1 class="text-2xl font-semibold text-white">数据导入</h1>
+        <p id="import-status" class="min-h-6 text-sm font-semibold text-blue-200"></p>
+      </div>
+      <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div class="rounded-xl border border-white/10 bg-[#151c2e] p-3">
+          <p class="text-sm font-semibold text-slate-100">底库</p>
+          <p class="mt-1 text-xs text-slate-500">CSV / TXT，每 10 万条写入</p>
+          <input id="file-base" type="file" accept=".csv,.txt,text/csv,text/plain" class="mt-3 block w-full text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2 file:py-1 file:text-xs file:text-slate-100" />
+          <button type="button" data-upload="#file-base" data-url="/upload_base" class="mt-3 h-9 w-full rounded-lg bg-blue-600 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-50">上传</button>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-[#151c2e] p-3">
+          <p class="text-sm font-semibold text-slate-100">触达池</p>
+          <p class="mt-1 text-xs text-slate-500">TXT / CSV / XLSX，标记已触达</p>
+          <input id="file-pool" type="file" accept=".csv,.txt,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mt-3 block w-full text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2 file:py-1 file:text-xs file:text-slate-100" />
+          <button type="button" data-upload="#file-pool" data-url="/upload_pool" class="mt-3 h-9 w-full rounded-lg bg-blue-600 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-50">上传</button>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-[#151c2e] p-3">
+          <p class="text-sm font-semibold text-slate-100">无效</p>
+          <p class="mt-1 text-xs text-slate-500">TXT / CSV / XLSX，标记触达无效</p>
+          <input id="file-invalid" type="file" accept=".csv,.txt,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mt-3 block w-full text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2 file:py-1 file:text-xs file:text-slate-100" />
+          <button type="button" data-upload="#file-invalid" data-url="/upload_invalid" class="mt-3 h-9 w-full rounded-lg bg-blue-600 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-50">上传</button>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-[#151c2e] p-3">
+          <p class="text-sm font-semibold text-slate-100">有效</p>
+          <p class="mt-1 text-xs text-slate-500">TXT / CSV / XLSX，标记触达有效</p>
+          <input id="file-valid" type="file" accept=".csv,.txt,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mt-3 block w-full text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2 file:py-1 file:text-xs file:text-slate-100" />
+          <button type="button" data-upload="#file-valid" data-url="/upload_valid" class="mt-3 h-9 w-full rounded-lg bg-blue-600 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-50">上传</button>
+        </div>
+        <div class="rounded-xl border border-white/10 bg-[#151c2e] p-3">
+          <p class="text-sm font-semibold text-slate-100">开客</p>
+          <p class="mt-1 text-xs text-slate-500">TXT / CSV / XLSX，标记触达已开客</p>
+          <input id="file-customer" type="file" accept=".csv,.txt,.xlsx,text/csv,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" class="mt-3 block w-full text-xs text-slate-300 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-2 file:py-1 file:text-xs file:text-slate-100" />
+          <button type="button" data-upload="#file-customer" data-url="/upload_customer" class="mt-3 h-9 w-full rounded-lg bg-blue-600 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-wait disabled:opacity-50">上传</button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+  <script type="module" src="/static/app.js?v=10"></script>
+</body>
+</html>
